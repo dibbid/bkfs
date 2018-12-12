@@ -1,0 +1,55 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+configurations.all {
+    resolutionStrategy {
+        // cache dynamic versions for 10 seconds
+        cacheDynamicVersionsFor 10, 'seconds'
+        // don't cache changing modules at all
+        cacheChangingModulesFor 0, 'seconds'
+    }
+}
+
+
+project.ext.nexus_host = '13.13.13.247'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    maven {
+        name "REPO_NEXUS"
+        url "http://${nexus_host}:8081/nexus/content/groups/public/"
+    }
+    mavenCentral()
+}
+
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "http://${nexus_host}:8081/nexus/content/repositories/releases/") {
+                authentication(userName: "admin", password: "admin123")
+            }
+            snapshotRepository(url: "http://${nexus_host}:8081/nexus/content/repositories/snapshots/") {
+                authentication(userName: "admin", password: "admin123")
+            }
+        }
+    }
+}
+
+group 'com.dib.neo'
+version '1.0-SNAPSHOT'
+
+ext{
+    libs_bookkeeper = "4.8.1"
+    libs_junit = "4.12"
+}
+
+[compileJava, javadoc, compileTestJava]*.options*.encoding = 'UTF-8'
+
+dependencies {
+    compile("org.apache.bookkeeper:bookkeeper-server:${libs_bookkeeper}")
+    testCompile("junit:junit:${libs_junit}")
+}
